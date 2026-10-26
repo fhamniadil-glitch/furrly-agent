@@ -1,0 +1,48 @@
+name: FURRLY auto-publish
+
+# Se déclenche toutes les 30 minutes (heure UTC côté GitHub ; le script gère le fuseau Europe/Paris).
+# Tu peux aussi le lancer à la main via l'onglet "Actions".
+on:
+  schedule:
+    - cron: "0,30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: furrly-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Publier les posts dus
+        env:
+          TIMEZONE: Europe/Paris
+          WINDOW_MIN: "90"
+          DRY_RUN: ${{ vars.DRY_RUN }}          # mets DRY_RUN=true (Variables) pour tester sans publier
+          MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          TIKTOK_TOKEN: ${{ secrets.TIKTOK_TOKEN }}
+        run: python publisher.py
+
+      - name: Mémoriser les posts publiés
+        run: |
+          git config user.name "furrly-bot"
+          git config user.email "furrly-bot@users.noreply.github.com"
+          git add state.json || true
+          git commit -m "state: posts publiés" || echo "rien à committer"
+          git push || echo "rien à pousser"
