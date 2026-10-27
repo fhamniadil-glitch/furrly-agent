@@ -209,7 +209,8 @@ def post_tiktok(row):
         },
         timeout=120,
     )
-    init.raise_for_status()
+    if init.status_code >= 400:
+        raise RuntimeError(f"TikTok init {init.status_code} : {init.text[:500]}")
     data = init.json().get("data", {})
     upload_url = data["upload_url"]
 
