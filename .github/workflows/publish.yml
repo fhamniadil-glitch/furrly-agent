@@ -4,7 +4,7 @@ name: FURRLY auto-publish
 # Tu peux aussi le lancer à la main via l'onglet "Actions".
 on:
   schedule:
-    - cron: "0,30 * * * *"
+    - cron: "7,37 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
       - name: Publier les posts dus
         env:
           TIMEZONE: Europe/Paris
-          WINDOW_MIN: "90"
+          WINDOW_MIN: "720"
           DRY_RUN: ${{ vars.DRY_RUN }}          # mets DRY_RUN=true (Variables) pour tester sans publier
           MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
