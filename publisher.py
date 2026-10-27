@@ -31,6 +31,13 @@ FB_PAGE_TOKEN = os.environ.get("FB_PAGE_TOKEN", "")
 IG_USER_ID = os.environ.get("IG_USER_ID", "")
 IG_TOKEN = os.environ.get("IG_TOKEN", "") or FB_PAGE_TOKEN
 TIKTOK_TOKEN = os.environ.get("TIKTOK_TOKEN", "")
+# Un jeton TikTok expire au bout de 24 h : l'agent en redemande un à chaque passage
+# grâce au refresh token (valable 1 an).
+TIKTOK_CLIENT_KEY = os.environ.get("TIKTOK_CLIENT_KEY", "")
+TIKTOK_CLIENT_SECRET = os.environ.get("TIKTOK_CLIENT_SECRET", "")
+TIKTOK_REFRESH_TOKEN = os.environ.get("TIKTOK_REFRESH_TOKEN", "")
+# SELF_ONLY tant que l'app n'est pas auditée par TikTok, puis PUBLIC_TO_EVERYONE.
+TIKTOK_PRIVACY = os.environ.get("TIKTOK_PRIVACY", "") or "SELF_ONLY"
 MEDIA_BASE = os.environ.get("MEDIA_BASE_URL", "").rstrip("/")
 
 # Fenêtre : on publie un post si son heure est passée depuis au plus WINDOW_MIN minutes.
@@ -140,26 +147,86 @@ def post_instagram(row):
     return pub.json()
 
 
+def tiktok_access_token():
+    if TIKTOK_REFRESH_TOKEN and TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET:
+        r = requests.post(
+            "https://open.tiktokapis.com/v2/oauth/token/",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "client_key": TIKTOK_CLIENT_KEY,
+                "client_secret": TIKTOK_CLIENT_SECRET,
+                "grant_type": "refresh_token",
+                "refresh_token": TIKTOK_REFRESH_TOKEN,
+            },
+            timeout=60,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if "access_token" not in data:
+            raise RuntimeError(f"Renouvellement du jeton TikTok refusé : {data}")
+        if data.get("refresh_token") and data["refresh_token"] != TIKTOK_REFRESH_TOKEN:
+            print("[INFO] TikTok a émis un nouveau refresh token : mets à jour le secret TIKTOK_REFRESH_TOKEN.")
+        return data["access_token"]
+    if TIKTOK_TOKEN:
+        return TIKTOK_TOKEN
+    raise RuntimeError("Identifiants TikTok manquants (TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN).")
+
+
 def post_tiktok(row):
-    """Optionnel. Nécessite une app TikTok validée (Content Posting API) + un jeton.
-    Tant que l'app n'est pas auditée, TikTok n'autorise que la visibilité SELF_ONLY."""
+    """Optionnel. Nécessite une app TikTok avec la Content Posting API.
+    La vidéo est téléchargée puis envoyée en fichier (FILE_UPLOAD) : TikTok refuse
+    PULL_FROM_URL pour un domaine qu'on ne possède pas (ex. static.metricool.com).
+    Tant que l'app n'est pas auditée, TikTok ne publie que sur un compte privé."""
     media = media_url(row.get("media_url", ""))
-    if not TIKTOK_TOKEN:
-        raise RuntimeError("TIKTOK_TOKEN manquant.")
     if not media:
         raise ValueError("TikTok exige une vidéo (media_url).")
+    token = tiktok_access_token()
+    video = requests.get(media, timeout=300)
+    video.raise_for_status()
+    blob = video.content
+    size = len(blob)
+
+    # Morceaux de 5 à 64 Mo ; sous 64 Mo, un seul envoi. Le dernier morceau absorbe le reste.
+    chunk = size if size <= 64 * 1024 * 1024 else 10 * 1024 * 1024
+    count = max(1, size // chunk)
+
     cap = row.get("caption", "")
-    r = requests.post(
+    init = requests.post(
         "https://open.tiktokapis.com/v2/post/publish/video/init/",
-        headers={"Authorization": f"Bearer {TIKTOK_TOKEN}", "Content-Type": "application/json"},
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json; charset=UTF-8"},
         json={
-            "post_info": {"title": cap[:150], "privacy_level": "SELF_ONLY"},
-            "source_info": {"source": "PULL_FROM_URL", "video_url": media},
+            "post_info": {
+                "title": cap[:2200],
+                "privacy_level": TIKTOK_PRIVACY,
+                "brand_organic_toggle": True,
+            },
+            "source_info": {
+                "source": "FILE_UPLOAD",
+                "video_size": size,
+                "chunk_size": chunk,
+                "total_chunk_count": count,
+            },
         },
         timeout=120,
     )
-    r.raise_for_status()
-    return r.json()
+    init.raise_for_status()
+    data = init.json().get("data", {})
+    upload_url = data["upload_url"]
+
+    for i in range(count):
+        start = i * chunk
+        end = size - 1 if i == count - 1 else start + chunk - 1
+        put = requests.put(
+            upload_url,
+            headers={
+                "Content-Type": "video/mp4",
+                "Content-Range": f"bytes {start}-{end}/{size}",
+            },
+            data=blob[start:end + 1],
+            timeout=300,
+        )
+        put.raise_for_status()
+    return {"publish_id": data.get("publish_id")}
 
 
 DISPATCH = {
