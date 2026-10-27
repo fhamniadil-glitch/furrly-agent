@@ -38,6 +38,9 @@ TIKTOK_CLIENT_SECRET = os.environ.get("TIKTOK_CLIENT_SECRET", "")
 TIKTOK_REFRESH_TOKEN = os.environ.get("TIKTOK_REFRESH_TOKEN", "")
 # SELF_ONLY tant que l'app n'est pas auditée par TikTok, puis PUBLIC_TO_EVERYONE.
 TIKTOK_PRIVACY = os.environ.get("TIKTOK_PRIVACY", "") or "SELF_ONLY"
+# "brouillon" (par défaut) : la vidéo arrive dans l'appli TikTok, on appuie sur Publier.
+# "direct" : publication automatique complète, possible une fois l'app validée par TikTok.
+TIKTOK_MODE = (os.environ.get("TIKTOK_MODE", "") or "brouillon").strip().lower()
 MEDIA_BASE = os.environ.get("MEDIA_BASE_URL", "").rstrip("/")
 
 # Fenêtre : on publie un post si son heure est passée depuis au plus WINDOW_MIN minutes.
@@ -190,23 +193,30 @@ def post_tiktok(row):
     chunk = size if size <= 64 * 1024 * 1024 else 10 * 1024 * 1024
     count = max(1, size // chunk)
 
-    cap = row.get("caption", "")
-    init = requests.post(
-        "https://open.tiktokapis.com/v2/post/publish/video/init/",
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json; charset=UTF-8"},
-        json={
+    source_info = {
+        "source": "FILE_UPLOAD",
+        "video_size": size,
+        "chunk_size": chunk,
+        "total_chunk_count": count,
+    }
+    if TIKTOK_MODE == "direct":
+        endpoint = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+        body = {
             "post_info": {
-                "title": cap[:2200],
+                "title": row.get("caption", "")[:2200],
                 "privacy_level": TIKTOK_PRIVACY,
                 "brand_organic_toggle": True,
             },
-            "source_info": {
-                "source": "FILE_UPLOAD",
-                "video_size": size,
-                "chunk_size": chunk,
-                "total_chunk_count": count,
-            },
-        },
+            "source_info": source_info,
+        }
+    else:
+        # Brouillon : la vidéo arrive dans la boîte de réception TikTok ; on publie depuis l'appli.
+        endpoint = "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
+        body = {"source_info": source_info}
+    init = requests.post(
+        endpoint,
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json; charset=UTF-8"},
+        json=body,
         timeout=120,
     )
     if init.status_code >= 400:
