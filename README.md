@@ -20,6 +20,9 @@ Déjà chargé dans `calendar.csv` : **tes 19 Reels** (23 oct → 10 nov, 18h15,
 | `requirements.txt` | La seule dépendance (`requests`) |
 | `state.json` | La mémoire des posts déjà publiés |
 | `media/` | Tes visuels (à remplir, voir étape 2) |
+| `responder.py` | L'agent IA qui répond aux commentaires et messages |
+| `furrly_knowledge.md` | Ce que l'agent sait de FURRLY (produits, livraison, retours) |
+| `.github/workflows/respond.yml` | Le réveil de l'agent de réponses toutes les 30 min |
 
 ---
 
@@ -105,6 +108,37 @@ Sur GitHub : ouvre `calendar.csv` → crayon ✏️ → ajoute ta ligne → **Co
 2. Demande l'**audit** de l'app (quelques jours). Avant l'audit, TikTok n'autorise que des publications **privées** (`SELF_ONLY`).
 3. Génère un jeton → secret `TIKTOK_TOKEN`.
 4. Ajoute `|tiktok` dans la colonne `platform` des Reels.
+
+---
+
+## Agent IA de réponses (commentaires + messages)
+
+`responder.py` tourne toutes les 30 min (workflow **FURRLY réponses IA**) :
+- **Commentaires Facebook + Instagram** : répond au ton FURRLY, **masque** spam et insultes, redirige les problèmes de commande vers le privé.
+- **Messages privés Messenger + Instagram** : répond (suivi de colis, tailles, prix, retours…).
+- Son savoir vient de **`furrly_knowledge.md`** (produits, prix, livraison, retours, contact). Modifie ce fichier quand une info change.
+- Il ne répond jamais deux fois, ignore les messages de plus de 48 h, ne dépasse pas 25 actions par passage, et **n'écrit jamais le contenu des messages privés** dans les journaux.
+
+### Mise en route (~10 min)
+1. **Nouveau jeton Meta** : refais l'étape 4 en cochant **en plus** `pages_manage_engagement`, `pages_read_user_content`, `pages_messaging`, `instagram_manage_comments`, `instagram_manage_messages`. Remplace les secrets `FB_PAGE_TOKEN` et `IG_TOKEN` (les publications continuent de marcher avec ce jeton).
+2. **Messages Instagram** : dans l'appli Instagram → Paramètres → Messages → **Outils connectés** → active **Autoriser l'accès aux messages**.
+3. **IA gratuite** : sur **aistudio.google.com** → **Get API key** → crée la clé → secret `GEMINI_API_KEY`.
+   *(Option payante, quelques centimes par mois : clé Claude sur console.anthropic.com → secret `ANTHROPIC_API_KEY`, utilisée en priorité.)*
+   Sans clé IA, l'agent répond avec des modèles simples.
+4. **Tester** : Actions → **FURRLY réponses IA** → Run workflow. Le journal montre ce qu'il **répondrait**, sans rien envoyer.
+5. **Passer en réel** : Settings → Secrets and variables → Actions → **Variables** → `REPONSES_DRY_RUN` = `false`.
+
+Lignes `[À TRAITER]` dans le journal : un client a un souci de commande, l'agent lui a donné le contact, mais jette un œil à ta boîte de réception.
+
+Pour ne gérer qu'une partie : variable `REPONSES_SCOPE` = `commentaires` ou `messages`.
+
+### Limites (imposées par les réseaux, pas par l'agent)
+- **Messages privés des clients** : tant que l'app Meta est en mode Développement, Meta ne livre que les messages des personnes qui ont un rôle sur l'app. Pour répondre à **tous** tes clients en privé, demande l'**accès avancé** (App Review) pour `pages_messaging` et `instagram_manage_messages`. En attendant, garde les réponses automatiques de **Meta Business Suite** pour les messages privés, et l'agent gère les commentaires.
+- **TikTok** : TikTok n'ouvre ni les commentaires ni les messages aux outils externes. Utilise les réponses automatiques intégrées à TikTok (compte Business → Outils Business → Messages directs). Pour un commentaire, génère la réponse ici et colle-la :
+  ```bash
+  python responder.py --test "Il existe en XL le harnais ?"
+  ```
+- **Gemini gratuit** : sur l'offre gratuite, Google peut utiliser les textes envoyés pour améliorer ses modèles. Si ça te gêne, prends l'option Claude.
 
 ---
 
