@@ -1,0 +1,49 @@
+name: FURRLY réponses IA
+
+# Toutes les 30 minutes : lit les nouveaux commentaires et messages FB/IG et y répond.
+# Lancement manuel possible via l'onglet "Actions".
+on:
+  schedule:
+    - cron: "22,52 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# Même groupe que la publication : les deux agents ne poussent jamais en même temps.
+concurrency:
+  group: furrly-publish
+  cancel-in-progress: false
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Répondre aux commentaires et messages
+        env:
+          REPONSES_DRY_RUN: ${{ vars.REPONSES_DRY_RUN }}   # mets REPONSES_DRY_RUN=false (Variables) pour passer en réel
+          REPONSES_SCOPE: ${{ vars.REPONSES_SCOPE }}       # "commentaires", "messages" ou les deux (défaut)
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python responder.py
+
+      - name: Mémoriser les messages traités
+        run: |
+          git config user.name "furrly-bot"
+          git config user.email "furrly-bot@users.noreply.github.com"
+          git add responder_state.json 2>/dev/null || true
+          git commit -m "state: réponses envoyées" || echo "rien à committer"
+          git pull --rebase || true
+          git push || echo "rien à pousser"
