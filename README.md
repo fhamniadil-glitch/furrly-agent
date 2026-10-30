@@ -147,3 +147,9 @@ Pour ne gérer qu'une partie : variable `REPONSES_SCOPE` = `commentaires` ou `me
 - **Vidéos Metricool** : les Reels pointent vers les vidéos hébergées par Metricool. Si tu les supprimes de Metricool, garde une copie et héberge-les dans `media/` (ou Google Drive en lien public) puis mets à jour `media_url`.
 - **Jeton révoqué** : si tu changes ton mot de passe Facebook ou retires l'accès de l'app, refais l'étape 4.
 - **Inactivité** : GitHub met en pause les tâches programmées d'un dépôt sans activité pendant 60 jours. Les mises à jour de `state.json` par l'agent comptent comme activité tant qu'il publie.
+
+## Rendu Instagram (grille propre)
+
+- **Couverture des Reels** : l'agent envoie `thumb_offset` (2 s par défaut, variable `REEL_COVER_MS`) pour éviter la vignette noire du fondu d'ouverture. Colonne optionnelle `cover` dans `calendar.csv` : un nombre (ms) ou une image dédiée (ex. `cover-reel-1030.jpg`, 1080×1920, texte dans le centre 3:4).
+- **Images** : la grille Instagram affiche en 3:4. Utiliser des visuels **1080×1350 (4:5)** avec le texte dans la zone centrale (marges latérales ~40 px). Les cartes `furrly-carte-XX-4x5.jpg` respectent ce cadrage.
+- **Vidéos** : 1080×1920 (9:16), éléments importants dans le centre 1080×1440.

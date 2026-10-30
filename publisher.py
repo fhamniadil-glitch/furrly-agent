@@ -42,6 +42,8 @@ TIKTOK_PRIVACY = os.environ.get("TIKTOK_PRIVACY", "") or "SELF_ONLY"
 # "direct" : publication automatique complète, possible une fois l'app validée par TikTok.
 TIKTOK_MODE = (os.environ.get("TIKTOK_MODE", "") or "brouillon").strip().lower()
 MEDIA_BASE = os.environ.get("MEDIA_BASE_URL", "").rstrip("/")
+# Instant (ms) de la vidéo utilisé comme couverture des Reels sur la grille Instagram.
+REEL_COVER_MS = os.environ.get("REEL_COVER_MS", "") or "2000"
 
 # Fenêtre : on publie un post si son heure est passée depuis au plus WINDOW_MIN minutes.
 # Couvre les retards de déclenchement de GitHub Actions. 90 min par défaut.
@@ -120,6 +122,14 @@ def post_instagram(row):
     if typ in ("reel", "video"):
         params["media_type"] = "REELS"
         params["video_url"] = media
+        params["share_to_feed"] = "true"
+        # Sans couverture, Instagram prend la 1re image : souvent un fondu noir.
+        # Colonne "cover" optionnelle : une image (couverture dédiée) ou un instant en ms.
+        cover = (row.get("cover") or "").strip()
+        if cover and not cover.isdigit():
+            params["cover_url"] = media_url(cover)
+        else:
+            params["thumb_offset"] = cover or REEL_COVER_MS
     else:
         params["image_url"] = media
 
