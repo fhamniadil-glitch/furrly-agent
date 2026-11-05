@@ -1,0 +1,176 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1793914166.0185525,
+    "seen": 1793914172.8492007,
+    "ast_hash": "acd227e338c191e7f4de125904d4db81",
+    "semantic_hash": ""
+  },
+  ".github/workflows/publish.yml": {
+    "mtime": 1793739098.8013268,
+    "seen": 1793914172.84921,
+    "ast_hash": "23126b786b86931586deae86820e02a0",
+    "semantic_hash": ""
+  },
+  ".github/workflows/respond.yml": {
+    "mtime": 1793739098.8016038,
+    "seen": 1793914172.8492148,
+    "ast_hash": "7b0da7336d47b42102ead339cfd1323d",
+    "semantic_hash": ""
+  },
+  "publisher.py": {
+    "mtime": 1793739098.8104203,
+    "seen": 1793914172.8492167,
+    "ast_hash": "5df9ce41749669b74387ce7f72cbac25",
+    "semantic_hash": ""
+  },
+  "responder.py": {
+    "mtime": 1793739098.8104203,
+    "seen": 1793914172.8492239,
+    "ast_hash": "bcf6d39b5daf86579ce91608611b23ef",
+    "semantic_hash": ""
+  },
+  "state.json": {
+    "mtime": 1793739098.8104203,
+    "seen": 1793914172.8492255,
+    "ast_hash": "b6d0cf01e523e464235e24cf34d614aa",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1793914166.0180566,
+    "seen": 1793914172.8492277,
+    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793739098.8016038,
+    "seen": 1793914172.8492296,
+    "ast_hash": "0f90c7bea07af937b04e9ff012d2a33d",
+    "semantic_hash": ""
+  },
+  "furrly_knowledge.md": {
+    "mtime": 1793739098.8016038,
+    "seen": 1793914172.849232,
+    "ast_hash": "b0e39f1bad9b4057641a8c1f0b117c19",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1793739098.8104203,
+    "seen": 1793914172.8492339,
+    "ast_hash": "a3d57699af61b391cf59a8df3824fbf2",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-01-1x1.jpg": {
+    "mtime": 1793739098.8016038,
+    "seen": 1793914172.8492362,
+    "ast_hash": "c55dac209513645b1dc83e114af28181",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-01-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492389,
+    "ast_hash": "e029d5a8b98774fdc217740526d80297",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-02-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492405,
+    "ast_hash": "738e4edd64bab0f755295d9f7aeccf80",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-02-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492434,
+    "ast_hash": "bf2d6dde0deae903d66a1991284268cf",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-03-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492455,
+    "ast_hash": "6f58f4c47a5a6ea066983ccce8930bf8",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-03-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492477,
+    "ast_hash": "11f56cdd415608c0e88b570acf7e071c",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-04-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.84925,
+    "ast_hash": "00ecf7c5c2c0a5487d5ea101d7c65ee2",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-04-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492525,
+    "ast_hash": "76b370445494d10802a445225edb91da",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-05-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492546,
+    "ast_hash": "dba261f78a047fe180ed09817e079cd7",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-05-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492572,
+    "ast_hash": "c3b8a39e627670ad9a745dea48f91ffa",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-06-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.849259,
+    "ast_hash": "207050ba49a6ee83e346226834ad4217",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-06-4x5.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492613,
+    "ast_hash": "2b312aa0b53fca32ba53ba98dcfb9bdc",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-07-1x1.jpg": {
+    "mtime": 1793739098.8029926,
+    "seen": 1793914172.8492637,
+    "ast_hash": "dc20fcdd26476e9a5f8338ceb1cf41ee",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-07-4x5.jpg": {
+    "mtime": 1793739098.8064203,
+    "seen": 1793914172.8492653,
+    "ast_hash": "1d82f3754e264698ccf440a8b31eb5b8",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-08-1x1.jpg": {
+    "mtime": 1793739098.8064203,
+    "seen": 1793914172.8492675,
+    "ast_hash": "3d35438aeba5b81b9a63c3d661bc763e",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-08-4x5.jpg": {
+    "mtime": 1793739098.8064203,
+    "seen": 1793914172.8492694,
+    "ast_hash": "4f70713142aaba7303f201fa262fc5c7",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-09-1x1.jpg": {
+    "mtime": 1793739098.8064203,
+    "seen": 1793914172.8492713,
+    "ast_hash": "b3aca9415a1cb62ddd12fbe02f4c5dfc",
+    "semantic_hash": ""
+  },
+  "media/furrly-carte-09-4x5.jpg": {
+    "mtime": 1793739098.8064203,
+    "seen": 1793914172.8492737,
+    "ast_hash": "11a3b2647ba6161235b0154aadb38527",
+    "semantic_hash": ""
+  },
+  "media/furrly-octobre-rose.mp4": {
+    "mtime": 1793739098.8104203,
+    "seen": 1793914172.8492758,
+    "ast_hash": "2f429cecbbcd0a12157757e5423feae6",
+    "semantic_hash": ""
+  }
+}
