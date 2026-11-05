@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "pal": {
+      "command": "pal-mcp-server",
+      "env": {
+        "GEMINI_API_KEY": "AIza-placeholder-real-key-injected-by-proxy",
+        "DEFAULT_MODEL": "auto",
+        "DISABLED_TOOLS": "thinkdeep,planner,codereview,precommit,debug,secaudit,docgen,analyze,refactor,tracer,testgen,challenge,apilookup"
+      }
+    }
+  }
+}

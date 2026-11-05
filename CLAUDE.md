@@ -16,3 +16,4 @@ Rules:
 - Prefer one targeted command over several exploratory ones; do not re-read files already in context.
 - Keep answers short (user preference: bref et efficace).
 - Repetitive jobs (posting, replies, reports) belong in the GitHub Actions workflows or Zapier/Make, not in a chat.
+- PAL MCP (`pal` server in `.mcp.json`) lets Claude hand work to Gemini: `chat` for a second opinion or bulk drafting, `consensus` to compare models, `clink` to run Gemini CLI as a sub-agent. Use it for heavy reading/drafting, not for small tasks. The real Gemini key is injected by the environment's network secret; the placeholder in `.mcp.json` is not a secret.
