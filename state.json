@@ -8,6 +8,8 @@
     "card-03:instagram",
     "card-04:facebook",
     "card-04:instagram",
+    "card-05:facebook",
+    "card-05:instagram",
     "octobre-rose-2026:facebook",
     "octobre-rose-2026:instagram",
     "octobre-rose-2026:tiktok",
@@ -40,7 +42,10 @@
     "reel-1105:facebook",
     "reel-1105:instagram",
     "reel-1105:tiktok",
+    "reel-1106:facebook",
+    "reel-1106:instagram",
+    "reel-1106:tiktok",
     "tiktok-test-1:tiktok"
   ],
-  "last_run": "2026-11-06T10:49:25.507365+01:00"
+  "last_run": "2026-11-06T18:26:05.694777+01:00"
 }
