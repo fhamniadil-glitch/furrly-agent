@@ -10,7 +10,7 @@ TikTok), avec la fiche « prête à lancer » (prix, marge, ROAS, angles de pub,
 
 1. **8h15** : GitHub lance l'agent (gratuit, rien à installer chez toi).
 2. L'agent lit ton catalogue Furrly (pour ne pas te proposer ce que tu vends déjà).
-3. Claude (IA) cherche sur le web : pubs, tendances, Amazon, TikTok, prix fournisseurs, avis clients.
+3. L'IA (Gemini gratuit, ou Claude en option) cherche sur le web : pubs, tendances, Amazon, TikTok, prix fournisseurs, avis clients.
 4. Si tu as un jeton Meta, la **bibliothèque publicitaire Meta** donne les vrais chiffres de pubs (sinon : recherche web).
 5. Python calcule **prix conseillé, marge, ROAS de rentabilité, CPA max, score /100, phase**.
 6. Les produits interdits, saturés ou pas assez rentables sont éliminés. Il reste le **TOP 3**.
@@ -22,9 +22,10 @@ Aucun chiffre n'est inventé : si une donnée manque, le rapport écrit **« non
 
 ## 2. Installation pas à pas (15 min, une seule fois)
 
-### Étape 1 — Clé Anthropic (obligatoire)
-1. Va sur **console.anthropic.com** → *API Keys* → *Create Key*.
-2. Copie la clé (`sk-ant-…`). Ajoute 10 $ de crédit (*Billing*). Une exécution coûte ≈ 0,50 à 1,50 $.
+### Étape 1 — Clé Gemini GRATUITE (obligatoire)
+1. Va sur **aistudio.google.com/apikey** (compte Google) → *Create API key*.
+2. Copie la clé (`AIza…`). Aucune carte bancaire : le niveau gratuit suffit (1 rapport/jour).
+   (Option payante plus précise : Claude — mettre `ia.fournisseur: anthropic` + secret `ANTHROPIC_API_KEY`.)
 
 ### Étape 2 — Mot de passe email OVH (obligatoire)
 Le mot de passe de la boîte **contact@furrlyrex.fr** (espace client OVH → Emails).
@@ -34,7 +35,8 @@ Sur GitHub : ton dépôt → **Settings** → **Secrets and variables** → **Ac
 
 | Nom du secret | Valeur | Obligatoire ? |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | ta clé `sk-ant-…` | ✅ oui |
+| `GEMINI_API_KEY` | ta clé gratuite `AIza…` | ✅ oui |
+| `ANTHROPIC_API_KEY` | clé Claude `sk-ant-…` (payant) | facultatif |
 | `SMTP_USER` | `contact@furrlyrex.fr` | ✅ oui |
 | `SMTP_PASSWORD` | mot de passe de la boîte email | ✅ oui |
 | `EMAIL_TO` | l'adresse qui reçoit le rapport (sinon contact@furrlyrex.fr) | facultatif |
@@ -63,7 +65,7 @@ Dès que le workflow est sur la branche principale (`main`), il tourne **tous le
 | Changer les frais / prix cible | `finances` |
 | Ajouter un interdit | `interdits` |
 | Dépenser moins | `ia.recherches_web_max`, `ia.candidats`, `ia.budget_max_usd` |
-| Changer de modèle IA | `ia.modele` |
+| Changer de moteur / modèle IA | `ia.fournisseur`, `ia.modele_gemini`, `ia.modele` |
 | Activer Telegram | `envoi.telegram: true` + secrets Telegram |
 
 ---
@@ -110,4 +112,5 @@ python main.py --dry-run  # affiche le rapport sans l'envoyer
 - **Pas d'email** : onglet *Actions* → ouvre la dernière exécution → lis les journaux (en français).
 - **« hors créneau »** : normal, un des 2 horaires est toujours hors créneau (été/hiver).
 - **Échec** : l'agent t'envoie un email « ⚠️ Top 3 Furrly — échec » avec la raison.
-- **Coût** : affiché en bas de chaque rapport ; plafond dans `ia.budget_max_usd`.
+- **Coût** : 0 € avec Gemini (niveau gratuit). Avec Claude : affiché en bas du rapport, plafond `ia.budget_max_usd`.
+- **Quota Gemini dépassé (erreur 429)** : l'agent réessaie ; si ça persiste, relance plus tard.

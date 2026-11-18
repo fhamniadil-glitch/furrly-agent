@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import date
@@ -201,3 +202,79 @@ class Agent:
                 log.warning("JSON invalide, nouvelle tentative : %s", str(e)[:200])
                 time.sleep(2)
         raise RuntimeError(f"Sortie IA invalide après 2 essais : {derniere_erreur}")
+
+
+# ======================================================================
+#  Moteur GRATUIT : Google Gemini (niveau gratuit AI Studio + recherche Google)
+# ======================================================================
+class AgentGemini:
+    """Même interface que Agent, mais avec Gemini (0 € dans les limites du niveau gratuit)."""
+
+    def __init__(self, cfg: dict, compteur: Compteur):
+        from google import genai  # import local : dépendance utile seulement pour ce moteur
+        from google.genai import types
+        self.types = types
+        self.cfg = cfg["ia"]
+        self.racine = cfg
+        self.c = compteur
+        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
+
+    def _appel(self, etiquette: str, contenu: str, config):
+        for essai in range(4):
+            try:
+                rep = self.client.models.generate_content(model=self.cfg["modele_gemini"], contents=contenu, config=config)
+                u = rep.usage_metadata
+                self.c.tokens_in += (u.prompt_token_count or 0) if u else 0
+                self.c.tokens_out += ((u.candidates_token_count or 0) + (getattr(u, "thoughts_token_count", 0) or 0)) if u else 0
+                self.c.appels.append(etiquette)
+                return rep
+            except Exception as e:  # 429 (quota/minute) ou 5xx : on patiente puis on réessaie
+                log.warning("Gemini %s (essai %d/4) : %s", etiquette, essai + 1, str(e)[:200])
+                if essai == 3:
+                    raise
+                time.sleep(20 * (essai + 1))
+
+    def rechercher(self, catalogue: list[dict], deja_vus: dict[str, str], jour: date, meta_ok: bool) -> str:
+        t = self.types
+        config = t.GenerateContentConfig(
+            system_instruction=SYSTEME,
+            tools=[t.Tool(google_search=t.GoogleSearch()), t.Tool(url_context=t.UrlContext())],
+        )
+        rep = self._appel("recherche", _consigne_recherche(self.racine, catalogue, deja_vus, jour, meta_ok), config)
+        notes = (rep.text or "").strip()
+        # sources Google réellement consultées
+        try:
+            gm = rep.candidates[0].grounding_metadata
+            self.c.recherches += len(gm.web_search_queries or [])
+            sources = [f"- {ch.web.title} : {ch.web.uri}" for ch in (gm.grounding_chunks or []) if ch.web]
+            if sources:
+                notes += "\n\nSources consultées :\n" + "\n".join(sources[:60])
+        except (AttributeError, IndexError, TypeError):
+            pass
+        if len(notes) < 500:
+            raise RuntimeError("Dossier de recherche vide ou trop court")
+        log.info("Dossier de recherche Gemini : %d caractères, %d recherches Google", len(notes), self.c.recherches)
+        return notes
+
+    def structurer(self, notes: str, jour: date) -> SortieIA:
+        config = self.types.GenerateContentConfig(
+            system_instruction=SYSTEME,
+            response_mime_type="application/json",
+            response_json_schema=SortieIA.model_json_schema(),
+        )
+        derniere = None
+        for essai in range(2):
+            rep = self._appel(f"structuration #{essai + 1}", _consigne_structuration(notes, jour), config)
+            try:
+                return SortieIA.model_validate_json(rep.text or "")
+            except ValidationError as e:
+                derniere = e
+                log.warning("JSON Gemini invalide, nouvelle tentative : %s", str(e)[:300])
+        raise RuntimeError(f"Sortie IA invalide après 2 essais : {derniere}")
+
+
+def creer_agent(cfg: dict, compteur: Compteur):
+    """Choix du moteur dans config.yaml → ia.fournisseur : gemini (gratuit) ou anthropic (payant)."""
+    if cfg["ia"].get("fournisseur", "gemini") == "anthropic":
+        return Agent(cfg, compteur)
+    return AgentGemini(cfg, compteur)

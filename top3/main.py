@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 ICI = Path(__file__).resolve().parent
 sys.path.insert(0, str(ICI))
 
-from agent import Agent, BudgetDepasse, Compteur  # noqa: E402
+from agent import BudgetDepasse, Compteur, creer_agent  # noqa: E402
 from collect.catalog import lire_catalogue  # noqa: E402
 from collect.meta_ads import MetaAdLibrary  # noqa: E402
 from memory import Memoire  # noqa: E402
@@ -110,7 +110,7 @@ def executer(args) -> int:
 
     # 2. Recherche IA + sortie structurée
     meta = MetaAdLibrary(cfg["meta"])
-    agent = Agent(cfg, compteur)
+    agent = creer_agent(cfg, compteur)
     try:
         notes = agent.rechercher(catalogue, mem.cles_connues(), jour, meta.disponible)
         sortie = agent.structurer(notes, jour)
@@ -170,7 +170,8 @@ def executer(args) -> int:
         "evenements": evenements_a_venir(cfg, jour), "calendrier_ia": sortie.calendrier,
         "lundi": jour.weekday() == 0, "bilan": mem.bilan_semaine(jour), "bilan_ia": sortie.bilan_semaine,
         "tendances": sortie.tendances_de_fond, "cout": compteur.cout, "recherches": compteur.recherches,
-        "lectures": compteur.lectures, "modele": ia["modele"],
+        "lectures": compteur.lectures,
+        "modele": ia["modele_gemini"] if ia.get("fournisseur", "gemini") != "anthropic" else ia["modele"],
     }
     html = generer(ctx, cfg)
 
