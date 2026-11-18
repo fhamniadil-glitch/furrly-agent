@@ -70,7 +70,8 @@ meta:
 # ---------- IA ----------
 ia:
   fournisseur: "gemini"        # gemini = GRATUIT (niveau gratuit Google AI Studio) | anthropic = payant
-  modele_gemini: "gemini-3.8-flash"
+  # modèles Gemini essayés dans l'ordre (le suivant si quota gratuit épuisé ou modèle retiré)
+  modeles_gemini: ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.8-flash-lite", "gemini-flash-lite-latest"]
   modele: "claude-sonnet-5-5"  # utilisé seulement si fournisseur = anthropic
   effort: "medium"             # low | medium | high
   recherches_web_max: 20       # plafond web_search par exécution

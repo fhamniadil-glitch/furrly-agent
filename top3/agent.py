@@ -219,20 +219,47 @@ class AgentGemini:
         self.c = compteur
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
 
+    def _modeles(self) -> list[str]:
+        m = self.cfg.get("modeles_gemini") or [self.cfg.get("modele_gemini", "gemini-flash-latest")]
+        return [self.modele_ok] + [x for x in m if x != self.modele_ok] if getattr(self, "modele_ok", None) else list(m)
+
+    def _lister_modeles(self) -> None:
+        """Diagnostic : affiche les modèles accessibles avec cette clé."""
+        try:
+            noms = [m.name for m in self.client.models.list() if "flash" in (m.name or "")]
+            log.warning("Modèles Gemini 'flash' accessibles avec ta clé : %s", ", ".join(noms[:30]))
+        except Exception as e:
+            log.warning("Impossible de lister les modèles : %s", str(e)[:150])
+
     def _appel(self, etiquette: str, contenu: str, config):
-        for essai in range(4):
-            try:
-                rep = self.client.models.generate_content(model=self.cfg["modele_gemini"], contents=contenu, config=config)
-                u = rep.usage_metadata
-                self.c.tokens_in += (u.prompt_token_count or 0) if u else 0
-                self.c.tokens_out += ((u.candidates_token_count or 0) + (getattr(u, "thoughts_token_count", 0) or 0)) if u else 0
-                self.c.appels.append(etiquette)
-                return rep
-            except Exception as e:  # 429 (quota/minute) ou 5xx : on patiente puis on réessaie
-                log.warning("Gemini %s (essai %d/4) : %s", etiquette, essai + 1, str(e)[:200])
-                if essai == 3:
-                    raise
-                time.sleep(20 * (essai + 1))
+        """Essaie chaque modèle de la liste ; passe au suivant si retiré (404) ou quota épuisé (429)."""
+        derniere = None
+        for modele in self._modeles():
+            for essai in range(2):
+                try:
+                    rep = self.client.models.generate_content(model=modele, contents=contenu, config=config)
+                    self.modele_ok = modele
+                    u = rep.usage_metadata
+                    self.c.tokens_in += (u.prompt_token_count or 0) if u else 0
+                    self.c.tokens_out += ((u.candidates_token_count or 0) + (getattr(u, "thoughts_token_count", 0) or 0)) if u else 0
+                    self.c.appels.append(f"{etiquette} ({modele})")
+                    log.info("Gemini %s OK avec %s", etiquette, modele)
+                    return rep
+                except Exception as e:
+                    derniere = e
+                    code = getattr(e, "code", None) or getattr(e, "status_code", None)
+                    log.warning("Gemini %s / %s (essai %d) : %s", etiquette, modele, essai + 1, str(e)[:160])
+                    if code in (404, 400, 403):
+                        break  # modèle indisponible pour cette clé → suivant
+                    if code == 429 and essai == 0:
+                        time.sleep(30)  # quota par minute : on patiente une fois
+                        continue
+                    if code not in (429,) and essai == 0:
+                        time.sleep(10)
+                        continue
+                    break
+        self._lister_modeles()
+        raise RuntimeError(f"Aucun modèle Gemini disponible (quota ou accès) : {str(derniere)[:300]}")
 
     def rechercher(self, catalogue: list[dict], deja_vus: dict[str, str], jour: date, meta_ok: bool) -> str:
         t = self.types

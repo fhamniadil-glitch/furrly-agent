@@ -171,7 +171,7 @@ def executer(args) -> int:
         "lundi": jour.weekday() == 0, "bilan": mem.bilan_semaine(jour), "bilan_ia": sortie.bilan_semaine,
         "tendances": sortie.tendances_de_fond, "cout": compteur.cout, "recherches": compteur.recherches,
         "lectures": compteur.lectures,
-        "modele": ia["modele_gemini"] if ia.get("fournisseur", "gemini") != "anthropic" else ia["modele"],
+        "modele": (getattr(agent, "modele_ok", None) or "gemini") if ia.get("fournisseur", "gemini") != "anthropic" else ia["modele"],
     }
     html = generer(ctx, cfg)
 
