@@ -1,0 +1,108 @@
+# ============================================================
+#  FURRLY — Agent « Top 3 produits chien »
+#  Tout se règle ici, sans toucher au code.
+# ============================================================
+
+boutique:
+  nom: "Furrly"
+  url: "https://furrlyrex.fr"
+  catalogue_json: "https://furrlyrex.fr/products.json"
+  marche: "France"
+  niche: >-
+    Équipement pour chiens actifs et sportifs (Malinois, Bergers) :
+    confort, sécurité, éducation, canicross. Chiens uniquement.
+  fournisseurs:
+    principal: "CJ Dropshipping (ne PAS scraper : mots-clés seulement)"
+    secours: "AliExpress"
+
+# Produits interdits (éliminatoires)
+interdits:
+  - "collier à choc électrique / collier électrique / anti-aboiement à décharge"
+  - "contrefaçon, produit sous licence (marques, personnages)"
+  - "produit avec tailles sans guide des tailles fiable"
+  - "produit fragile (verre, céramique)"
+  - "produit lourd (> 2 kg) ou encombrant (> 60 cm)"
+  - "alimentaire, friandises, compléments, médicaments, antiparasitaires"
+  - "produit pour chat ou autre animal que le chien"
+
+# ---------- Coûts et prix ----------
+finances:
+  livraison_usd: 5.70          # livraison fournisseur par colis
+  droit_ue_eur: 3.00           # droit UE forfaitaire par colis
+  tva: 0.20                    # TVA IOSS (incluse dans le prix TTC)
+  taux_usd_eur: 0.92           # 1 $ = x €
+  frais_paiement_pct: 0.029    # Shopify Payments / Stripe
+  frais_paiement_fixe_eur: 0.25
+  prix_min_eur: 20
+  prix_max_eur: 55
+  roas_objectif: 2.5           # ROAS de rentabilité visé
+  terminaisons_psy: [0.90, 0.95]  # 29,90 / 34,95 …
+
+# ---------- Score sur 100 (pondérations) ----------
+ponderations:
+  pubs: 20          # durée et intensité des pubs
+  demande: 20       # vitesse de croissance de la demande
+  marge: 20         # marge et ROAS de rentabilité
+  viral: 15         # effet wow / problème montrable en vidéo
+  fenetre: 15       # fenêtre d'opportunité (faible saturation)
+  adequation: 10    # adéquation Furrly + synergie catalogue
+
+# ---------- Seuils ----------
+seuils:
+  marge_nette_min_pct: 30      # éliminatoire si marge nette < 30 %
+  roas_max: 3.0                # éliminatoire si ROAS de rentabilité > 3
+  pub_gagnante_jours: 21       # pub active ≥ 21 j …
+  pub_gagnante_variantes: 2    # … avec ≥ 2 variantes = gagnant
+  annonceurs_expansion_max: 15 # nouveaux annonceurs mais < 15 au total = expansion
+  annonceurs_pic: 30           # 30-50 annonceurs = Pic
+  annonceurs_sature: 50        # > 50 annonceurs = Saturé
+  verdict_lancer_score: 70     # 🟢 À LANCER si score ≥ 70 (sinon 🟡 À SURVEILLER)
+  repos_jours: 14              # ne pas reproposer avant 14 jours …
+  repos_bonus_points: 10       # … sauf si le score gagne ≥ 10 points
+
+# ---------- Bibliothèque publicitaire Meta ----------
+meta:
+  version_graph: "v21.0"
+  pays: ["FR", "BE", "DE", "ES", "IT", "NL", "AT", "PT", "IE", "LU"]
+  pages_max: 3                 # 3 × 100 pubs max par mot-clé
+  delai_requete_s: 1.0
+
+# ---------- IA ----------
+ia:
+  modele: "claude-sonnet-5-5"
+  effort: "medium"             # low | medium | high
+  recherches_web_max: 20       # plafond web_search par exécution
+  lectures_web_max: 15         # plafond web_fetch par exécution
+  candidats: 8                 # produits analysés avant de garder le TOP 3
+  budget_max_usd: 3.00         # plafond de dépense par exécution
+  # tarifs pour le calcul du coût affiché ($ par million de tokens)
+  prix_entree_mtok: 2.00
+  prix_sortie_mtok: 10.00
+  prix_recherche_web: 0.01     # $ par recherche web
+  fallbacks: true              # modèle de secours si refus
+
+# ---------- Envoi ----------
+envoi:
+  heure: 9                     # heure de réception (Paris)
+  fuseau: "Europe/Paris"
+  objet: "🐕 Top 3 Furrly — {date}"
+  expediteur: "contact@furrlyrex.fr"
+  destinataire: "contact@furrlyrex.fr"   # remplaçable par le secret EMAIL_TO
+  smtp_hote: "ssl0.ovh.net"
+  smtp_port: 465
+  telegram: false              # true = envoie aussi un résumé sur Telegram
+
+# ---------- Calendrier commercial (MM-JJ) ----------
+calendrier:
+  - {date: "01-14", nom: "Soldes d'hiver (≈ 2e mercredi de janvier)"}
+  - {date: "02-14", nom: "Saint-Valentin (cadeau pour son chien)"}
+  - {date: "03-20", nom: "Printemps : reprise balades, canicross, tiques"}
+  - {date: "04-15", nom: "Pâques / début saison trails"}
+  - {date: "05-25", nom: "Fête des mères / pré-été"}
+  - {date: "06-24", nom: "Soldes d'été + canicule (rafraîchissement)"}
+  - {date: "07-14", nom: "Vacances : voyage, voiture, randonnée"}
+  - {date: "09-01", nom: "Rentrée : éducation, reprise sport"}
+  - {date: "10-31", nom: "Halloween / nuits courtes : visibilité LED"}
+  - {date: "11-27", nom: "Black Friday / Cyber Monday"}
+  - {date: "12-25", nom: "Noël : cadeaux chien sportif"}
+  - {date: "12-31", nom: "Nouvel An : pétards, anxiété, sécurité"}

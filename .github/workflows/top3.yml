@@ -1,0 +1,72 @@
+name: FURRLY Top 3 produits
+
+# Deux horaires UTC pour couvrir l'heure d'été ET d'hiver :
+#   06:15 UTC = 8h15 Paris en été   |   07:15 UTC = 8h15 Paris en hiver
+# Le script vérifie l'heure de Paris, prépare le rapport puis l'envoie à 9h00 pile.
+on:
+  schedule:
+    - cron: "15 6 * * *"
+    - cron: "15 7 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = rapport sans envoi (téléchargeable) · envoyer = envoi immédiat"
+        type: choice
+        options: [test, envoyer]
+        default: test
+
+permissions:
+  contents: write
+
+concurrency:
+  group: furrly-top3
+  cancel-in-progress: false
+
+jobs:
+  top3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r top3/requirements.txt
+
+      - name: Lancer l'agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "test" ]; then
+            python top3/main.py --dry-run
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python top3/main.py --force
+          else
+            python top3/main.py
+          fi
+
+      - name: Rapport téléchargeable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-top3
+          path: rapports/*.html
+          if-no-files-found: ignore
+
+      - name: Sauvegarder la mémoire et l'archive
+        if: always() && !(github.event_name == 'workflow_dispatch' && inputs.mode == 'test')
+        run: |
+          git config user.name "furrly-bot"
+          git config user.email "furrly-bot@users.noreply.github.com"
+          git add top3/furrly.db rapports/ || true
+          git diff --cached --quiet || git commit -m "top3: rapport du $(date +%F)"
+          git pull --rebase --autostash || true
+          git push || true

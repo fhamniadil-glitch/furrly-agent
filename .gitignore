@@ -3,3 +3,8 @@ __pycache__/
 
 # graphify
 graphify-out/cache/
+
+# agent top3
+.env
+top3/.env
+rapports/*-test.html
