@@ -223,18 +223,29 @@ class AgentGemini:
         m = self.cfg.get("modeles_gemini") or [self.cfg.get("modele_gemini", "gemini-flash-latest")]
         return [self.modele_ok] + [x for x in m if x != self.modele_ok] if getattr(self, "modele_ok", None) else list(m)
 
-    def _lister_modeles(self) -> None:
-        """Diagnostic : affiche les modèles accessibles avec cette clé."""
+    def _lister_modeles(self) -> list[str]:
+        """Modèles 'flash' texte accessibles avec cette clé (les plus récents d'abord)."""
         try:
-            noms = [m.name for m in self.client.models.list() if "flash" in (m.name or "")]
-            log.warning("Modèles Gemini 'flash' accessibles avec ta clé : %s", ", ".join(noms[:30]))
+            noms = [m.name.split("/")[-1] for m in self.client.models.list() if "flash" in (m.name or "")]
+            noms = [n for n in noms if not any(x in n for x in ("image", "omni", "preview", "tts", "live", "audio"))]
+            noms.sort(reverse=True)
+            log.warning("Modèles Gemini 'flash' accessibles avec ta clé : %s", ", ".join(noms))
+            return noms
         except Exception as e:
             log.warning("Impossible de lister les modèles : %s", str(e)[:150])
+            return []
 
     def _appel(self, etiquette: str, contenu: str, config):
         """Essaie chaque modèle de la liste ; passe au suivant si retiré (404) ou quota épuisé (429)."""
         derniere = None
-        for modele in self._modeles():
+        essayes: list[str] = []
+        candidats = self._modeles()
+        decouverte = False
+        while candidats:
+            modele = candidats.pop(0)
+            if modele in essayes:
+                continue
+            essayes.append(modele)
             for essai in range(2):
                 try:
                     rep = self.client.models.generate_content(model=modele, contents=contenu, config=config)
@@ -258,7 +269,9 @@ class AgentGemini:
                         time.sleep(10)
                         continue
                     break
-        self._lister_modeles()
+            if not candidats and not decouverte:  # liste épuisée → on découvre les modèles de la clé
+                decouverte = True
+                candidats = [m for m in self._lister_modeles() if m not in essayes]
         raise RuntimeError(f"Aucun modèle Gemini disponible (quota ou accès) : {str(derniere)[:300]}")
 
     def rechercher(self, catalogue: list[dict], deja_vus: dict[str, str], jour: date, meta_ok: bool) -> str:
